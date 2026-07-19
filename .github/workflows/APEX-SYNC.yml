@@ -28,6 +28,7 @@ jobs:
           fetch-depth: 1
 
       - name: Generate Reports and Commit
+        id: sync
         run: .github/scripts/sync.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,18 +38,19 @@ jobs:
         run: |
           echo "## APX Sync Report" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ job.status }}" != "success" ]; then
+          if [ "${{ steps.sync.outcome }}" != "success" ]; then
             echo "❌ Sync failed - check logs for details" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
           
-          if [ -f "SYNC_REPORT.md" ] && [ -f "CURRENT_BASELINE.md" ]; then
+          # Check for generated files (exist and not empty)
+          if [ -f "SYNC_REPORT.md" ] && [ -f "CURRENT_BASELINE.md" ] && [ -s "SYNC_REPORT.md" ] && [ -s "CURRENT_BASELINE.md" ]; then
             echo "✅ Reports generated and committed successfully" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Files Updated:**" >> $GITHUB_STEP_SUMMARY
             echo "- SYNC_REPORT.md" >> $GITHUB_STEP_SUMMARY
             echo "- CURRENT_BASELINE.md" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ Some files are missing" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Some files are missing or empty" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
