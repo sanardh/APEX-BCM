@@ -1,4 +1,4 @@
-name: APX Sync
+name: APEX Sync
 
 on:
   workflow_dispatch:
